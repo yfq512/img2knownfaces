@@ -1,0 +1,11 @@
+from: https://github.com/ageitgey/face_recognition
+
+安装dlib费事，博客园有记录；
+
+场景1：门禁实时监测
+run rec......oneperson.py
+
+场景2：领导人检测
+run rec......manypersons.py
+
+算法特性：数据库图像要清晰，无ps，无遮挡，正面包含人脸照，测试图像同上（可带窄边框眼镜，略侧脸），当前容忍度：0.4
