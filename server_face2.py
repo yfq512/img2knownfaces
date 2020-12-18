@@ -1,7 +1,7 @@
 import face_recognition
 import cv2, os, shutil, fcntl
 import numpy as np
-import time
+import time,re
 import random
 from skimage import io
 
@@ -180,7 +180,7 @@ def del_name(dstroot, del_faces_root, delname):
 
 
 # Get a reference to webcam #0 (the default one)
-dstroot = './pictures_of_people_i_know4'
+dstroot = './pictures_of_people_i_know3'
 known_face_encodings, known_face_names = load_faces(dstroot)
 
 app = Flask(__name__)
@@ -194,6 +194,8 @@ def findfaces():
     if request.method == "POST":
         # base64data encode to iamge and save
         imgbase64 = request.form.get('imgbase64')
+        imgbase64 = re.sub(r'data:image/[a-zA-Z]*;base64,', "",imgbase64)
+        imgbase64 = imgbase64.replace("data:image/jpeg;base64,", "")
         imgdata = base64.b64decode(imgbase64)
         randname = getRandomSet(15)
         imgrandpath = os.path.join(imgroot, randname + '.jpg')
@@ -201,7 +203,10 @@ def findfaces():
         file.write(imgdata)
         file.close()
         print(imgrandpath)
-        str1  = find_faces(imgrandpath, known_face_encodings, known_face_names, updata_faces_root, dstroot, del_faces_root)
+        try:
+            str1  = find_faces(imgrandpath, known_face_encodings, known_face_names, updata_faces_root, dstroot, del_faces_root)
+        except:
+            str1 = {"sign":-1, "names":''}
         return str1
     else:
         return "<h1>Find faces, please use post!</h1>"
@@ -236,5 +241,5 @@ def delfaces():
 
 if __name__ == '__main__':
     host = '0.0.0.0'
-    port = '8082'
+    port = '8086'
     app.run(debug=True, host=host, port=port)
