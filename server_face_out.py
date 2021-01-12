@@ -186,28 +186,46 @@ def delface():
             names.append(n.split('/')[-1].split('.jpg')[0])
         try:
             index_ = names.index(delname)
+            del faces_encodes[index_]
+            del face_names[index_]
+            print(data_face_npy_path)
+            np.save(data_face_npy_path, data_face_npy) # 删除后重写npy数据
+
         except:
             print('not find name in npy data')
-            return json.dumps({'sign':-1})
-        # 删除npy 指定数据
-        del faces_encodes[index_]
-        del face_names[index_]
-        print(data_face_npy_path)
-        np.save(data_face_npy_path, data_face_npy) # 删除后重写npy数据
-        
         # 删除原始图像保存
         del_img_path = os.path.join(face_save_root, class_id, delname+'.jpg')
         if not os.path.exists(del_img_path):
             print('>>>>', del_img_path)
             print('not find delname in face_save_root')
-            return json.dumps({'sign':-1})
-        os.remove(del_img_path)
+            #return json.dumps({'sign':-1})
         # 删除人脸crop
         del_face_crop_path = os.path.join(face_crop_root, class_id, delname+'.jpg')
-        if not os.path.exists(del_face_crop_path):
-            print('not find delname in face_crop_root')
+        chinese_name = []
+        rand_name = []
+        record_txt_path = os.path.join(face_crop_root, class_id, 'record.txt')
+        for m in open(record_txt_path):
+            line = m[:-1]
+            line_split = line.split(',')
+            if len(line_split) == 2: # 正常行
+                chinese_name.append(line_split[0])
+                rand_name.append(line_split[1])
+        try:
+            index_ = []
+            cnt = 0
+            for n in chinese_name:
+                if n == delname:
+                    index_.append(cnt)
+                cnt = cnt + 1
+            for i in index_:
+                del_rand_name = rand_name[i]
+                del_face_crop_path = os.path.join(face_crop_root, class_id, del_rand_name)
+                if os.path.exists(del_face_crop_path):
+                    os.remove(del_face_crop_path)
+                else:
+                    print('not find delname in face_crop_root')
+        except:
             return json.dumps({'sign':-1})
-        os.remove(del_face_crop_path)
         
         return json.dumps({'sign':1})
         #except:
@@ -234,9 +252,11 @@ def get_face_list():
                 chinese_name.append(line_split[0])
                 randname.append(line_split[1])
         for n in face_crop_list:
+            if n[-3:] == 'txt':
+                continue
             index_ = randname.index(n)
             names.append(chinese_name[index_])
-            temp_url = 'http://192.168.132.151:8801/' + 'img_all/face_crops/' + n # 反向代理
+            temp_url = 'http://192.168.132.151:8801/' + 'img_all/face_crops/' + os.path.join(class_id, n) # 反向代理
             out_url.append(temp_url)
         return json.dumps({'sign':1, 'all_face_urls':out_url, 'all_names':names})
     else:
