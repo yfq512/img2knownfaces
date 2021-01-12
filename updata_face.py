@@ -43,13 +43,13 @@ def add_face(imgpath, data_npy_root, class_id):
     # 制作人脸列表
     (top, right, bottom, left) = face_locations[0]
     face_cropped = face_img[top:bottom, left:right, :]
-    face_cropped_root = '***'
+    face_cropped_root = '/opt/docker/python/img_all/face_crops/'
     face_cropped_path = os.path.join(face_cropped_root, class_id, imgpath.split('/')[-1])
     cv2.imwrite(face_cropped_path, face_cropped) # 再用反向代理的方式返回face_crop列表
     return 1
 
 if __name__ == "__main__":
-    imgroot = 'data_face'
+    imgroot = 'data_face_base'
     data_npy_root = 'data_face_npy'
     class_id = 'base'
     img_list = os.listdir(imgroot)
