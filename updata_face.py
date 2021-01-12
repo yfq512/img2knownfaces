@@ -41,13 +41,9 @@ def add_face(imgpath, data_npy_root, class_id):
         np.save(data_npy_path, data_face)
         
     # 制作人脸列表
-    print(face_locations[0])
     
     (top, right, bottom, left) = face_locations[0]
-    print('top, right, bottom, left', top, right, bottom, left)
-    print(type(top))
     face_cropped = face_img[top:bottom, left:right, :]
-    print(face_cropped.shape)
     face_cropped_root = '/opt/docker/python/img_all/face_crops/'
     face_cropped_root2 = os.path.join(face_cropped_root, class_id)
     if not os.path.exists(face_cropped_root2):

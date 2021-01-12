@@ -88,7 +88,7 @@ def find_faces(imgpath, data_npy_root, class_id, face_public_sign):
             for person in face_names:
                 if not person == 'Unknown':
                     sign = 2
-                    knownpersons.append(person.split('.')[0])
+                    knownpersons.append(person.split('/')[-1].split('.')[0])
                     knownlocations.append(face_locations[cnt_dst])
                 cnt_dst = cnt_dst + 1
             for knownlocations_i in knownlocations:
@@ -104,7 +104,7 @@ def find_faces(imgpath, data_npy_root, class_id, face_public_sign):
     str1 = str(sign) + ':' + str(knownpersons)
     if os.path.exists(imgpath):
         os.remove(imgpath)
-    return {'sign':sign, 'names':json.dumps(knownpersons), 'locations':json.dumps(knownlocations_out)}
+    return {'sign':sign, 'names':knownpersons, 'locations':json.dumps(knownlocations_out)}
 
 # Get a reference to webcam #0 (the default one)
 
@@ -161,9 +161,9 @@ def addface():
         sign = add_face(imgpath, data_npy_root, class_id)
         if sign == -1:
             os.remove(imgpath)
-            return -1
+            return json.dumps({'sign':-1})
         else:
-            return 1
+            return json.dumps({'sign':1})
     else:
         return "<h1>Updata faces, please use post!</h1>"
 
@@ -172,44 +172,46 @@ def delface():
     if request.method == "POST":
         delname = request.form.get('delname')
         class_id = request.form.get('class_id')
+        #try:
+        # 删除npy数据
+        data_face_npy_path = os.path.join(data_npy_root, class_id, 'data.npy')
+        if not os.path.exists(data_face_npy_path):
+            print('not exists this npy')
+            return json.dumps({'sign':-1})
+        data_face_npy = np.load(data_face_npy_path, allow_pickle=True).item()
+        faces_encodes = data_face_npy.get('faces_encodes')
+        face_names = data_face_npy.get('face_paths')
+        names = []
+        for n in face_names:
+            names.append(n.split('/')[-1].split('.jpg')[0])
         try:
-            # 删除npy数据
-            data_face_npy_path = os.path.join(data_npy_root, class_id, 'data.npy')
-            if not os.path.exists(data_face_npy_path):
-                print('not exists this npy')
-                return -1
-            data_face_npy = np.load(data_face_npy_path, allow_pickle=True).item()
-            faces_encodes = data_face_npy.get('faces_encodes')
-            face_names = data_face_npy.get('face_paths')
-            names = []
-            for n in face_names:
-                names.append(n.split('/')[-1].split('.jpg')[0])
-            try:
-                index_ = names.index(delname)
-            except:
-                print('not find name in npy data')
-                return -1
-            # 删除npy 指定数据
-            del faces_encodes[index_]
-            del face_names[index_]
-            np.save(data_face_npy, data_face_npy_path) # 删除后重写npy数据
-        
-            # 删除原始图像保存
-            del_img_path = os.path.join(face_save_root, class_id, delname+'.jpg')
-            if not os.path.exists(del_img_path):
-                print('not find delname in face_save_root')
-                return -1
-            os.remove(del_img_path)
-            # 删除人脸crop
-            del_face_crop_path = os.path.join(face_crop_root, class_id, delname+'.jpg')
-            if not os.path.exists(del_face_crop_path):
-                print('not find delname in face_crop_root')
-                return -1
-            os.remove(del_face_crop_path)
-            
-            return 1
+            index_ = names.index(delname)
         except:
-            return -1
+            print('not find name in npy data')
+            return json.dumps({'sign':-1})
+        # 删除npy 指定数据
+        del faces_encodes[index_]
+        del face_names[index_]
+        print(data_face_npy_path)
+        np.save(data_face_npy_path, data_face_npy) # 删除后重写npy数据
+        
+        # 删除原始图像保存
+        del_img_path = os.path.join(face_save_root, class_id, delname+'.jpg')
+        if not os.path.exists(del_img_path):
+            print('>>>>', del_img_path)
+            print('not find delname in face_save_root')
+            return json.dumps({'sign':-1})
+        os.remove(del_img_path)
+        # 删除人脸crop
+        del_face_crop_path = os.path.join(face_crop_root, class_id, delname+'.jpg')
+        if not os.path.exists(del_face_crop_path):
+            print('not find delname in face_crop_root')
+            return json.dumps({'sign':-1})
+        os.remove(del_face_crop_path)
+        
+        return json.dumps({'sign':1})
+        #except:
+        #    return json({'sign':-1})
     else:
         return "<h1>Delete faces, please use post!</h1>"
 
