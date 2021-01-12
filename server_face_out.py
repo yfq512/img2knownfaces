@@ -223,11 +223,22 @@ def get_face_list():
         face_crop_list = os.listdir(face_crop_root_2)
         out_url = []
         names = []
+        
+        record_txt_path = os.path.join(face_crop_root_2, 'record.txt')
+        chinese_name = []
+        randname = []
+        for m in open(record_txt_path):
+            line = m[:-1]
+            line_split = line.split(',')
+            if len(line_split) == 2: # 正常行
+                chinese_name.append(line_split[0])
+                randname.append(line_split[1])
         for n in face_crop_list:
-            names.append(n.split('.jpg')[0])
+            index_ = randname.index(n)
+            names.append(chinese_name[index_])
             temp_url = 'http://192.168.132.151:8801/' + 'img_all/face_crops/' + n # 反向代理
             out_url.append(temp_url)
-        return json.dumps({'all_face_urls':out_url, 'all_names':names})
+        return json.dumps({'sign':1, 'all_face_urls':out_url, 'all_names':names})
     else:
         return "<h1>Delete faces, please use post!</h1>"
 

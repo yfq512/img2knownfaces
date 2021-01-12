@@ -8,6 +8,14 @@ Created on Tue Jan 12 14:02:24 2021
 import face_recognition
 import cv2, os, shutil, fcntl, json
 import numpy as np
+import random
+
+def getRandomSet(bits):
+    num_set = [chr(i) for i in range(48,58)]
+    char_set = [chr(i) for i in range(97,123)]
+    total_set = num_set + char_set
+    value_set = "".join(random.sample(total_set, bits))
+    return value_set
 
 def add_face(imgpath, data_npy_root, class_id):
     try:
@@ -48,8 +56,15 @@ def add_face(imgpath, data_npy_root, class_id):
     face_cropped_root2 = os.path.join(face_cropped_root, class_id)
     if not os.path.exists(face_cropped_root2):
         os.makedirs(face_cropped_root2)
-    face_cropped_path = os.path.join(face_cropped_root, class_id, imgpath.split('/')[-1])
+    randname = getRandomSet(15)+'.jpg'
+    chinese_name = imgpath.split('/')[-1].split('.')[0]
+    face_cropped_path = os.path.join(face_cropped_root, class_id, randname)
     cv2.imwrite(face_cropped_path, face_cropped) # 再用反向代理的方式返回face_crop列表
+    record_txt = os.path.join(face_cropped_root2, 'record.txt')
+    file = open(record_txt,'a')
+    file.write(chinese_name+','+randname)
+    file.write('\n')
+    file.close()
     return 1
 
 if __name__ == "__main__":
