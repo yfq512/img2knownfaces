@@ -1,5 +1,5 @@
 import face_recognition
-import cv2, os, shutil, fcntl
+import cv2, os, shutil, fcntl, json
 import numpy as np
 import time,re
 import random
@@ -9,6 +9,7 @@ import requests
 from flask import Flask,render_template,request
 import base64
 
+# test
 def getRandomSet(bits):
     num_set = [chr(i) for i in range(48,58)]
     char_set = [chr(i) for i in range(97,123)]
@@ -120,12 +121,14 @@ def find_faces(imgpath, known_face_encodings, known_face_names, updata_faces_roo
     #small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
     x = frame.shape[1]
     y = frame.shape[0]
-    small_frame = cv2.resize(frame,(int(x*3), int(y*3)))
+    img_resize_k = 1
+    small_frame = cv2.resize(frame,(int(x*img_resize_k), int(y*img_resize_k)))
 
     # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     rgb_small_frame = small_frame[:, :, ::-1]
 
     # Only process every other frame of video to save time
+    knownlocations_out = []
     if process_this_frame:
         face_locations = face_recognition.face_locations(rgb_small_frame)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
@@ -151,8 +154,6 @@ def find_faces(imgpath, known_face_encodings, known_face_names, updata_faces_roo
                     knownpersons.append(person.split('.')[0])
                     knownlocations.append(face_locations[cnt_dst])
                 cnt_dst = cnt_dst + 1
-            img_resize_k = 3
-            knownlocations_out = []
             for knownlocations_i in knownlocations:
                 location_tuple_0 = int(knownlocations_i[0]/img_resize_k)
                 location_tuple_1 = int(knownlocations_i[1]/img_resize_k)
@@ -166,7 +167,7 @@ def find_faces(imgpath, known_face_encodings, known_face_names, updata_faces_roo
     str1 = str(sign) + ':' + str(knownpersons)
     if os.path.exists(imgpath):
         os.remove(imgpath)
-    return {'sign':sign, 'names':str(knownpersons), 'locations':knownlocations_out}
+    return {'sign':sign, 'names':json.dumps(knownpersons), 'locations':json.dumps(knownlocations_out)}
 
 def del_name(dstroot, del_faces_root, delname):
     # delete denname file which in dstroot, write delnames in dsel_faces_root/delnames.txt
@@ -214,10 +215,10 @@ def findfaces():
         file.write(imgdata)
         file.close()
         print(imgrandpath)
-        try:
-            str1  = find_faces(imgrandpath, known_face_encodings, known_face_names, updata_faces_root, dstroot, del_faces_root)
-        except:
-            str1 = {"sign":-1, "names":''}
+        #try:
+        str1  = find_faces(imgrandpath, known_face_encodings, known_face_names, updata_faces_root, dstroot, del_faces_root)
+        #except:
+        #    str1 = {"sign":-1, "names":''}
         return str1
     else:
         return "<h1>Find faces, please use post!</h1>"
