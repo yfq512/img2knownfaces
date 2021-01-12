@@ -5,7 +5,7 @@ import time,re
 import random
 from skimage import io
 
-from updata_faces import addface
+from updata_face import add_face
 
 import requests
 from flask import Flask,render_template,request
@@ -158,8 +158,9 @@ def addface():
         file = open(imgpath,'wb')
         file.write(imgdata)
         file.close()
-        sign = addface(imgpath, data_npy_root, class_id)
+        sign = add_face(imgpath, data_npy_root, class_id)
         if sign == -1:
+            os.remove(imgpath)
             return -1
         else:
             return 1
